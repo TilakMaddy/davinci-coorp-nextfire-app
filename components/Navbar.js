@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { UserContext } from '../lib/context';
 import { useContext } from 'react';
 import { auth, firestore } from '../lib/firebase';
-import { useDocument } from 'react-firebase-hooks/firestore';
+import { useDocument, useDocumentData } from 'react-firebase-hooks/firestore';
 
 export default function Navbar() {
 
@@ -26,7 +26,7 @@ export default function Navbar() {
               </Link>
               <Link href="/signup-notifs">
                 <button className="btn-green" style={{ fontSize: '22px', boxSizing: 'border-box', position : 'relative'}}>
-                  🔔
+                  👽
                   <UserCount />
                 </button>
               </Link>
@@ -43,7 +43,14 @@ export default function Navbar() {
         {(username && username !== "boss") &&  (
           <>
 
-            <li className="push-left">
+            <Link href="/page-notifs">
+              <button className="btn-blue push-left" style={{ fontSize: '22px', boxSizing: 'border-box', position : 'relative'}}>
+                🔔
+                <PageCount />
+              </button>
+            </Link>
+
+            <li>
               <button onClick={() => auth.signOut()}>Sign Out</button>
             </li>
 
@@ -73,7 +80,9 @@ export default function Navbar() {
   )
 }
 
-
+/**
+ * This component only shows up when boss is logged in
+ */
 function UserCount() {
 
   const ref = firestore.collection('other_stuff').doc('count');
@@ -97,4 +106,44 @@ function UserCount() {
       { snapshot?.data().count }
     </div>
   );
+}
+
+
+/**
+ * This component shows up for a normal user
+ */
+
+function PageCount() {
+
+  const { user } = useContext(UserContext);
+
+  // last_notif: Total notifications that exist in the table
+  const last_notif_ref = firestore.doc('other_stuff/last_notif');
+  const [last_notif, l1] = useDocumentData(last_notif_ref);
+
+  const last_user_read = firestore.doc(`users/${user.uid}`);
+  const [last_notif_read, l2] = useDocumentData(last_user_read);
+
+  if(l1 || l2)
+    return null;
+
+  const new_count = last_notif.value - (last_notif_read?.last_read ?? 0);
+
+  if(new_count == 0)
+    return null;
+
+  return <div className='page-count'
+      style={{
+        position: 'absolute',
+        top: '0',
+        right: '0',
+        background: 'black',
+        width: '30px',
+        height: '30px',
+        borderRadius: '50%'
+      }}>
+
+      { new_count }
+  </div>;
+
 }

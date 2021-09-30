@@ -6,7 +6,7 @@ import ImageUploader from '../../components/ImageUploader';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
-import { useDocumentDataOnce } from 'react-firebase-hooks/firestore';
+import { useDocumentDataOnce, useDocumentData } from 'react-firebase-hooks/firestore';
 import { useForm } from 'react-hook-form';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
@@ -56,20 +56,49 @@ function PostManager() {
 }
 
 function PostForm({ defaultValues, postRef, preview }) {
-  const { register, errors, handleSubmit, formState, reset, watch } = useForm({ defaultValues, mode: 'onChange' });
 
+  const last_notif_ref = firestore.doc('other_stuff/last_notif');
+  const [last_notif] = useDocumentData(last_notif_ref);
+
+  const { register, errors, handleSubmit, formState, reset, watch } = useForm({ defaultValues, mode: 'onChange' });
   const { isValid, isDirty } = formState;
 
   const updatePost = async ({ content, published }) => {
-    await postRef.update({
+
+    const userNotifsRef = firestore.doc(`user_notifs/${last_notif.value + 1}`);
+
+    const batch = firestore.batch();
+
+    batch.update(postRef, {
       content,
       published,
       updatedAt: serverTimestamp(),
     });
 
-    reset({ content, published });
+    /**
+     * Only notify the users if Boss decides to publish the page
+     */
+    if(published) {
 
-    toast.success('Post updated successfully!');
+      batch.set(userNotifsRef, {
+        content: `Post on ${defaultValues.title} just got updated ! `,
+        slug: defaultValues.slug,
+      });
+
+      batch.update(last_notif_ref, {
+        value: last_notif.value + 1
+      });
+
+    }
+
+    try {
+      batch.commit();
+      reset({ content, published });
+      toast.success('Post updated successfully!');
+    } catch(e) {
+      toast.error('An error occured !');
+    }
+
   };
 
   return (
@@ -96,7 +125,7 @@ function PostForm({ defaultValues, postRef, preview }) {
 
         <fieldset>
           <input className={styles.checkbox} name="published" type="checkbox" ref={register} />
-          <label>Published</label>
+          <label>Published (Notifies all users if ticked) </label>
         </fieldset>
 
         <button type="submit" className="btn-green" disabled={!isDirty || !isValid}>
