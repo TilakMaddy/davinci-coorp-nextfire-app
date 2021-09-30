@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useContext, useState, useEffect, useCallback } from "react";
 import debounce from 'lodash.debounce';
 import { UserContext } from "../lib/context";
-import { auth, firestore, googleAuthProvider, firebaseAuthConfig, serverTimestamp } from "../lib/firebase";
+import { auth, firestore, googleAuthProvider, firebaseAuthConfig, serverTimestamp, increment } from "../lib/firebase";
 import toast from "react-hot-toast";
 
 export default function EnterPage({}) {
@@ -130,6 +130,7 @@ function UsernameForm() {
     // Create refs for both documents
     const userDoc = firestore.doc(`users/${user.uid}`);
     const usernameDoc = firestore.doc(`usernames/${formValue}`)
+    const userCount = firestore.doc(`other_stuff/count`)
 
     //Commit both docs together as a batch write
     const batch = firestore.batch();
@@ -140,6 +141,7 @@ function UsernameForm() {
       createdAt: serverTimestamp(),
     });
     batch.set(usernameDoc, { uid: user.uid });
+    batch.update(userCount, { count: increment(1)});
 
     try {
       await batch.commit();

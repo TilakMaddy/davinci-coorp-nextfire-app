@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { UserContext } from '../lib/context';
 import { useContext } from 'react';
-import { auth } from '../lib/firebase';
+import { auth, firestore } from '../lib/firebase';
+import { useDocument } from 'react-firebase-hooks/firestore';
 
 export default function Navbar() {
 
@@ -24,7 +25,10 @@ export default function Navbar() {
                 <button className="btn-blue" style={{ fontSize: '16px'}}> Manage Posts 📝 </button>
               </Link>
               <Link href="/signup-notifs">
-                <button className="btn-green" style={{ fontSize: '22px', boxSizing: 'border-box'}}> 🔔 </button>
+                <button className="btn-green" style={{ fontSize: '22px', boxSizing: 'border-box', position : 'relative'}}>
+                  🔔
+                  <UserCount />
+                </button>
               </Link>
               <button style={{ fontSize: '16px'}} onClick={() => auth.signOut()}>Sign Out</button>
             </li>
@@ -67,4 +71,30 @@ export default function Navbar() {
       </ul>
     </nav>
   )
+}
+
+
+function UserCount() {
+
+  const ref = firestore.collection('other_stuff').doc('count');
+  const [snapshot] = useDocument(ref);
+
+  // window.s = snapshot;
+  // console.log(snapshot?.data());
+
+  return (
+    <div className='user-count'
+      style={{
+        position: 'absolute',
+        top: '0',
+        right: '0',
+        background: 'black',
+        width: '30px',
+        height: '30px',
+        borderRadius: '50%'
+      }}>
+
+      { snapshot?.data().count }
+    </div>
+  );
 }
