@@ -26,7 +26,7 @@ export default function NewlyRevisedPages() {
 
   }, [last_notif])
 
-  const publications_ref = firestore.collection(`user_notifs`);
+  const publications_ref = firestore.collection(`user_notifs`).orderBy('createdAt', 'desc');
   const [pubs, l2] = useCollectionData(publications_ref);
 
   if(l2) return null;

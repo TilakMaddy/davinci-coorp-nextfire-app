@@ -78,14 +78,14 @@ function PostForm({ defaultValues, postRef, preview }) {
     /**
      * notify the users if Boss decides to pub/unpub the page
      */
-
-    const notifContent = published ?
-      `Post on ${defaultValues.title} just got updated ! ` :
-      `Post on ${defaultValues.title} was unpublished ! `;
+    // console.log(published, typeof published);
+    const notifContent = published ? `Post on ${defaultValues.title} just got updated ! ` : `Post on ${defaultValues.title} was unpublished ! `;
+    // console.log(notifContent);
 
     batch.set(userNotifsRef, {
       content: notifContent,
       slug: defaultValues.slug,
+      createdAt: serverTimestamp(),
     });
 
     batch.update(last_notif_ref, {
@@ -145,7 +145,7 @@ function DeletePostButton({ postRef }) {
     if (doIt) {
       await postRef.delete();
       router.push('/admin');
-      toast('post annihilated ', { icon: '🗑️' });
+      toast('Post annihilated ', { icon: '🗑️' });
     }
   };
 
