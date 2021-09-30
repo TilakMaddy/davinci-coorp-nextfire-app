@@ -76,20 +76,21 @@ function PostForm({ defaultValues, postRef, preview }) {
     });
 
     /**
-     * Only notify the users if Boss decides to publish the page
+     * notify the users if Boss decides to pub/unpub the page
      */
-    if(published) {
 
-      batch.set(userNotifsRef, {
-        content: `Post on ${defaultValues.title} just got updated ! `,
-        slug: defaultValues.slug,
-      });
+    const notifContent = published ?
+      `Post on ${defaultValues.title} just got updated ! ` :
+      `Post on ${defaultValues.title} was unpublished ! `;
 
-      batch.update(last_notif_ref, {
-        value: last_notif.value + 1
-      });
+    batch.set(userNotifsRef, {
+      content: notifContent,
+      slug: defaultValues.slug,
+    });
 
-    }
+    batch.update(last_notif_ref, {
+      value: last_notif.value + 1
+    });
 
     try {
       batch.commit();

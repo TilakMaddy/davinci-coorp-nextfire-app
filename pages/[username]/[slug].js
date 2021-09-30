@@ -58,6 +58,10 @@ export default function Post(props) {
 
   const { user: currentUser } = useContext(UserContext);
 
+  if(!post.published) {
+    return <h2> This post has been unpublished ! </h2>
+  }
+
   return (
     <main className={styles.container}>
       <Metatags title={post.title} description={post.title} />
