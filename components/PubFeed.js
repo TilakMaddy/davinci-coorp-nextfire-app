@@ -6,7 +6,7 @@ export default function PubFeed({ posts }) {
     return null;
   }
 
-  return [...posts].reverse().map((post, i) => <PostItem post={post} key={i} />) || null;
+  return posts.map((post, i) => <PostItem post={post} key={i} />) || null;
 }
 
 function PostItem({ post }) {
